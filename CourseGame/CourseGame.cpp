@@ -10,6 +10,7 @@ public:
     Sprite fon, game, exit , block[18] , player , ball;
 
     RectangleShape line;
+
 };
 
 //Menu
@@ -19,16 +20,24 @@ public:
     bool game = false;
  };
 
-
+bool DoubleHit(int HitArray[] , int  &c);
 
 int main()
 {
+    int score = 0;
     double kx = 0;
     double ky = 0;
     double SpeedBoard = 0.2;
     double SpeedBall = 0.09;
-
+    //переменная на пробел , если больше нуля , то игра запускается
     int eventGameStart = 0;
+
+    //Массив для сверки второго удара
+    int HitArray[18];
+    for (int q = 0; q < 18; q++) {
+        HitArray[q] = 1;
+
+    }
 
     //создание окна отрисовки
     RenderWindow window(VideoMode(1200, 800), "Arcanoid");
@@ -36,8 +45,9 @@ int main()
     Object obj;
     Menu men;
 
+
     //Фон
-    Texture t1, t2, t3, t4, t5, t6;
+    Texture t1, t2, t3, t4, t5, t6 ;
     t1.loadFromFile("Paint/fon.png");
     obj.fon.setTexture(t1);
 
@@ -59,7 +69,15 @@ int main()
     for (int i = 0; i < 6; i++) {
         for (int j = 0; j < 3; j++) {
             obj.block[j * 6 + i].setTexture(t4);
-            obj.block[j * 6 + i].setTextureRect(IntRect(0, 0, 140, 26));
+            if (j < 1) {
+                obj.block[j * 6 + i].setTextureRect(IntRect(140, 0, 140, 26));
+            }
+            else if (j == 1) {
+                obj.block[j * 6 + i].setTextureRect(IntRect(280, 0, 140, 26));
+            }
+            else {
+                obj.block[j * 6 + i].setTextureRect(IntRect(0, 0, 140, 26));
+            }
         }
     }
 
@@ -178,14 +196,44 @@ int main()
                     eventGameStart = 0;
                 }
 
+                 
 
-                
+               
+
+                //Скрытие блока
                 for (int i = 0; i < 18; i++) {
                     if (obj.ball.getGlobalBounds().intersects(obj.block[i].getGlobalBounds())) {
                         ky *= -1;
                         obj.ball.move(SpeedBall, 0.1 * ky);
 
-                        obj.block[i].setPosition(1300, 0);
+
+                       
+
+                        //Проверка какой блок сбит
+                        if (i < 6) {
+                            score += 100;
+                            cout << score  << endl;
+
+                            obj.block[i].setPosition(1300, 0);
+                        }
+                        else if (i >= 6 && i < 12) {
+                            score += 50;
+                            cout << score << endl;
+                            obj.block[i].setPosition(1300, 0);
+                        }
+
+
+                        //тут проверка на отбитие
+                        else if(i >= 12  && DoubleHit(HitArray, i)){
+                            score += 10;
+                            obj.block[i].setPosition(1300, 0);
+                            cout << score  << endl;      
+                            
+                        }
+                        else {
+                            
+                            obj.ball.move(SpeedBall, 0.1 * -ky);
+                        }
                     }
                 }
             }
@@ -221,3 +269,15 @@ int main()
 
     return 0;
 }
+
+
+bool DoubleHit(int TestArray[], int& c) {
+    if (TestArray[c] == 1) {
+        TestArray[c] = 0;
+        return false;
+    }
+    else {
+        return true;
+    }
+    
+};
