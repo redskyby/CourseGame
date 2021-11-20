@@ -1,5 +1,6 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
+#include <sstream>
 
 using namespace std;
 using namespace sf;
@@ -20,6 +21,7 @@ public:
     bool game = false;
  };
 
+//Разрушение блоков со второго раза
 bool DoubleHit(int HitArray[] , int  &c);
 
 int main()
@@ -44,6 +46,15 @@ int main()
 
     Object obj;
     Menu men;
+
+    //Текст , цвет , шрифт , жирность.
+    Font font;
+    font.loadFromFile("CyrilicOld.ttf");
+    Text text("", font, 30);
+    text.setFillColor(Color::White);
+    text.setStyle(Text::Bold);
+    text.setPosition(0, 0);
+
 
 
     //Фон
@@ -142,7 +153,7 @@ int main()
 
             //Если игра == тру , то откликаться на клавиши
             Vector2f BoardEvent = obj.player.getPosition();
-            if (men.game) {
+            if (men.game) {               
                 //Правая D
                 if (Keyboard::isKeyPressed(Keyboard::D)) {
                     if (BoardEvent.x < 870) {
@@ -241,7 +252,12 @@ int main()
 
 
 
-
+        //Создание текста
+        //Создание потока на вывод переменной в тексте
+        ostringstream playerScoreString;
+        playerScoreString << score;
+        //Текст с количеством очков
+        text.setString("Твой счет:" + playerScoreString.str());
 
 
         window.draw(obj.fon);
@@ -259,6 +275,7 @@ int main()
             }
             window.draw(obj.ball);
             window.draw(obj.player);
+            window.draw(text);
         }
 
         window.display();
