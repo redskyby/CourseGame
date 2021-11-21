@@ -33,7 +33,8 @@ int main()
     double SpeedBall = 0.09;
     //переменная на пробел , если больше нуля , то игра запускается
     int eventGameStart = 0;
-
+    //Переменная для проверки конца игры
+    int endGame = 0;
     //Массив для сверки второго удара
     int HitArray[18];
     for (int q = 0; q < 18; q++) {
@@ -153,7 +154,7 @@ int main()
 
             //Если игра == тру , то откликаться на клавиши
             Vector2f BoardEvent = obj.player.getPosition();
-            if (men.game) {               
+            if (men.game ) {               
                 //Правая D
                 if (Keyboard::isKeyPressed(Keyboard::D)) {
                     if (BoardEvent.x < 870) {
@@ -200,11 +201,14 @@ int main()
 
                     obj.ball.move(SpeedBall, -0.5);
                 }
-                //Если мячик упал
-                if (BallInGame.y > 800) {
-                    obj.player.setPosition(400, 750);
-                    obj.ball.setPosition(510, 660);
+                //Если мячик упал или все блоки сбиты
+                if (BallInGame.y > 800 || endGame > 17) {
+                    //obj.player.setPosition(400, 750);
+                   // obj.ball.setPosition(510, 660);
                     eventGameStart = 0;
+                    endGame = 0;
+                    men.game = false;
+                    men.menu = true;
                 }
 
                  
@@ -221,28 +225,25 @@ int main()
                        
 
                         //Проверка какой блок сбит
-                        if (i < 6) {
+                        if (i < 6 ) {
                             score += 100;
-                            cout << score  << endl;
-
                             obj.block[i].setPosition(1300, 0);
+                            endGame++;
                         }
                         else if (i >= 6 && i < 12) {
-                            score += 50;
-                            cout << score << endl;
+                            score += 50;                        
                             obj.block[i].setPosition(1300, 0);
+                            endGame++;
                         }
 
 
                         //тут проверка на отбитие
                         else if(i >= 12  && DoubleHit(HitArray, i)){
                             score += 10;
-                            obj.block[i].setPosition(1300, 0);
-                            cout << score  << endl;      
-                            
+                            obj.block[i].setPosition(1300, 0); 
+                            endGame++;
                         }
-                        else {
-                            
+                        else {   
                             obj.ball.move(SpeedBall, 0.1 * -ky);
                         }
                     }
