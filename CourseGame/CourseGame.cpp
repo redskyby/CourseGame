@@ -10,7 +10,7 @@ using namespace sf;
 //класс для спрайтов
 class Object {
 public:
-    Sprite fon, game, exit, block[18], player, ball, gift, buttonTableScore;
+    Sprite fon, game, exit, block[18], player, ball, gift, buttonTableScore, buttonBack;
 
     bool moveGift = false;
 
@@ -29,8 +29,11 @@ public:
 
 //Разрушение блоков со второго раза
 bool DoubleHit(int HitArray[], int& c);
+//Сортировка массиваы
 void  SortOfVector(int sortArray[], int& thisScore);
+//Чтение из файла
 void ReadIngFromFile(int ReadFromFile[]);
+//Запись в файл
 void WrittenInFile(int WrittenInFile[], int& LoadInFileScore);
 
 int main()
@@ -52,7 +55,8 @@ int main()
     }
 
     //Вектор для таблицы рекордов и по умолчанию вставляю в него нули.
-    int playerScore[10] = { 0 };
+    //Массив на 11 ячеек , для сортировки , но вывод первых десяти
+    int playerScore[11] = { 0 };
     //Загрузка базы данных
     ReadIngFromFile(playerScore);
 
@@ -81,7 +85,7 @@ int main()
 
 
     //Фон
-    Texture t1, t2, t3, t4, t5, t6, t7, t8;
+    Texture t1, t2, t3, t4, t5, t6, t7, t8, t9;
     t1.loadFromFile("Paint/fon.png");
     obj.fon.setTexture(t1);
 
@@ -138,6 +142,12 @@ int main()
     obj.buttonTableScore.setPosition(800, 600);
     obj.buttonTableScore.setScale(0.5f, 0.5f);
 
+    //Кнопка вернуться назад
+    t9.loadFromFile("Paint/back.png");
+    obj.buttonBack.setTexture(t9);
+    obj.buttonBack.setPosition(80, 600);
+
+
     while (window.isOpen()) {
         Event event;
 
@@ -183,7 +193,7 @@ int main()
 
                 }
 
-
+                //Событие на кнопку Вывод очков
                 if (pos.x >= 800 && pos.x <= 1200 &&
                     pos.y >= 610 && pos.y <= 700) {
 
@@ -323,6 +333,18 @@ int main()
             }
 
             tableScore.setString(TextForTableScore.str());
+            if (event.type == Event::MouseButtonPressed) {
+                if (event.key.code == Mouse::Left) {
+                    Vector2i MouseInScore = Mouse::getPosition(window);
+                    if (MouseInScore.x >= 80 && MouseInScore.x <= 310 &&
+                        MouseInScore.y >= 600 && MouseInScore.y <= 700) {
+                        men.buttonBack = false;
+                        men.tableSrore = false;
+                        men.menu = true;
+                    }
+                }
+            }
+
         }
 
         //Создание текста со счетом
@@ -337,9 +359,6 @@ int main()
 
 
         window.draw(obj.fon);
-
-
-
 
         //Если меню true , то видим меню
         if (men.menu) {
@@ -359,6 +378,7 @@ int main()
         }
         if (men.tableSrore) {
             window.draw(tableScore);
+            window.draw(obj.buttonBack);
         }
         //Если нажата кнопка "Играть" и булева переменная тру у приза , то видим приз
         if (men.game && obj.moveGift) {
@@ -401,22 +421,22 @@ void ReadIngFromFile(int ReadFromFile[]) {
         read.close();
     }
     //вызов сортировки
-    SortOfVector(ReadFromFile, ReadFromFile[9]);
+    SortOfVector(ReadFromFile, ReadFromFile[10]);
 
 }
 void WrittenInFile(int WrittenInFile[], int& LoadInFileScore) {
 
     //вставляю в конец , так как  сортровка идет по убыванию.
-     WrittenInFile[9] = LoadInFileScore;
+    WrittenInFile[10] = LoadInFileScore;
 
-    SortOfVector(WrittenInFile, WrittenInFile[9]);
+    SortOfVector(WrittenInFile, WrittenInFile[10]);
     ofstream written;
     written.open("DataPlayer.txt", ios_base::out | ios_base::trunc);
     if (!written.is_open()) {
         cout << "Fail data is down";
     }
     else {
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 11; i++) {
             written << WrittenInFile[i] << endl;
         }
         written.close();
@@ -426,9 +446,10 @@ void SortOfVector(int sortArray[], int& thisScore) {
     int temp = 0;
     //Обнуляю 
     //Вставляю в конц, для сортировки всего массива
+    sortArray[10] = thisScore;
 
-    for (int i = 0; i < 10; i++) {
-        for (int j = 0;j < 10 - i; j++) {
+    for (int i = 0; i < 11; i++) {
+        for (int j = 0;j < 11 - i; j++) {
             if (sortArray[j] <= sortArray[j + 1]) {
                 temp = sortArray[j];
                 sortArray[j] = sortArray[j + 1];
