@@ -1,6 +1,7 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <sstream>
+#include <fstream>
 
 
 using namespace std;
@@ -9,7 +10,7 @@ using namespace sf;
 //класс для спрайтов
 class Object {
 public:
-    Sprite fon, game, exit, block[18], player, ball, gift;
+    Sprite fon, game, exit, block[18], player, ball, gift, buttonTableScore;
 
     bool moveGift = false;
 
@@ -22,12 +23,15 @@ class Menu {
 public:
     bool menu = true;
     bool game = false;
+    bool tableSrore = false;
+    bool buttonBack = false;
 };
 
 //Разрушение блоков со второго раза
 bool DoubleHit(int HitArray[], int& c);
-
-
+void  SortOfVector(int sortArray[], int& thisScore);
+void ReadIngFromFile(int ReadFromFile[]);
+void WrittenInFile(int WrittenInFile[], int& LoadInFileScore);
 
 int main()
 {
@@ -35,7 +39,7 @@ int main()
     double kx = 0;
     double ky = 0;
     double SpeedBoard = 0.2;
-    double SpeedBall = 0.05;
+    double SpeedBall = 0.09;
     //переменная на пробел , если больше нуля , то игра запускается
     int eventGameStart = 0;
     //Переменная для проверки конца игры
@@ -46,6 +50,11 @@ int main()
         HitArray[q] = 1;
 
     }
+
+    //Вектор для таблицы рекордов и по умолчанию вставляю в него нули.
+    int playerScore[10] = { 0 };
+    //Загрузка базы данных
+    ReadIngFromFile(playerScore);
 
     //создание окна отрисовки
     RenderWindow window(VideoMode(1200, 800), "Arcanoid");
@@ -61,10 +70,18 @@ int main()
     text.setStyle(Text::Bold);
     text.setPosition(0, 0);
 
+    //Таблица рекордов
+    Font fontForTable;
+    fontForTable.loadFromFile("CyrilicOld.ttf");
+    Text tableScore("", fontForTable, 50);
+    tableScore.setFillColor(Color::White);
+    tableScore.setStyle(Text::Bold);
+    tableScore.setPosition(500, 100);
+
 
 
     //Фон
-    Texture t1, t2, t3, t4, t5, t6, t7;
+    Texture t1, t2, t3, t4, t5, t6, t7, t8;
     t1.loadFromFile("Paint/fon.png");
     obj.fon.setTexture(t1);
 
@@ -115,7 +132,11 @@ int main()
     t7.loadFromFile("Paint/pula.png");
     obj.gift.setTexture(t7);
 
-
+    //Кнопка результатов
+    t8.loadFromFile("Paint/nastroy.png");
+    obj.buttonTableScore.setTexture(t8);
+    obj.buttonTableScore.setPosition(800, 600);
+    obj.buttonTableScore.setScale(0.5f, 0.5f);
 
     while (window.isOpen()) {
         Event event;
@@ -162,6 +183,15 @@ int main()
 
                 }
 
+
+                if (pos.x >= 800 && pos.x <= 1200 &&
+                    pos.y >= 610 && pos.y <= 700) {
+
+                    men.tableSrore = true;
+                    men.menu = false;
+
+
+                }
             }
         }
 
@@ -219,17 +249,19 @@ int main()
             }
             //Если мячик упал или все блоки сбиты
             if (BallInGame.y > 800 || endGame > 17) {
-                //obj.player.setPosition(400, 750);
-               // obj.ball.setPosition(510, 660);
+                //Сортировка и запись в текстовый файл.
+                SortOfVector(playerScore, score);
+                WrittenInFile(playerScore, score);
                 eventGameStart = 0;
                 endGame = 0;
                 men.game = false;
                 men.menu = true;
+                score = 0;
             }
 
 
 
-            //Скрытие блока
+            //Скрытие блоков
             for (int i = 0; i < 18; i++) {
                 if (obj.ball.getGlobalBounds().intersects(obj.block[i].getGlobalBounds())) {
                     ky *= -1;
@@ -270,29 +302,30 @@ int main()
                 }
             }
 
-            //Движение и сокрытие блока
+            //Движение и сокрытие блока с подарком
             if (obj.moveGift) {
-                obj.gift.move(0, SpeedBall);
-
-                //если есть стокновение с игроком
+                obj.gift.move(0, SpeedBall * 1.5);
                 if (obj.gift.getGlobalBounds().intersects(obj.player.getGlobalBounds())) {
                     obj.gift.setPosition(1800, 400);
                     obj.gift.move(0, 0);
                     score += 400;
                 }
-                //игрок не вспоймал и приз улетел за экран , то скрыть его
-                Vector2f posGift = obj.gift.getPosition();
-                if (posGift.y > 850) {
-                    obj.gift.setPosition(1800, 400);
-                    obj.gift.move(0, 0);
-                }
             }
 
         }
 
+        //Создание потока для текста
+        //Таблица рекордов
+        stringstream TextForTableScore;
+        if (men.tableSrore) {
+            for (int a = 0; a < 10; a++) {
+                TextForTableScore << playerScore[a] << endl;
+            }
 
+            tableScore.setString(TextForTableScore.str());
+        }
 
-        //Создание текста
+        //Создание текста со счетом
         //Создание потока на вывод переменной в тексте
         ostringstream playerScoreString;
         playerScoreString << score;
@@ -312,6 +345,7 @@ int main()
         if (men.menu) {
             window.draw(obj.game);
             window.draw(obj.exit);
+            window.draw(obj.buttonTableScore);
         }
         //Если нажата кнопка "Играть"  , то играем
         if (men.game) {
@@ -322,6 +356,9 @@ int main()
             window.draw(obj.ball);
             window.draw(obj.player);
             window.draw(text);
+        }
+        if (men.tableSrore) {
+            window.draw(tableScore);
         }
         //Если нажата кнопка "Играть" и булева переменная тру у приза , то видим приз
         if (men.game && obj.moveGift) {
@@ -339,12 +376,64 @@ int main()
 }
 
 
-bool DoubleHit(int TestArray[], int& c) {
-    if (TestArray[c] == 1) {
-        TestArray[c] = 0;
+bool DoubleHit(int HitArray[], int& c) {
+    if (HitArray[c] == 1) {
+        HitArray[c] = 0;
         return false;
     }
     else {
         return true;
     }
 };
+void ReadIngFromFile(int ReadFromFile[]) {
+    ifstream read;
+    read.open("DataPlayer.txt");
+
+    if (!read.is_open()) {
+        cout << "Problem load a file.";
+    }
+    else {
+        int point = 0;
+        while (!read.eof()) {
+            read >> ReadFromFile[point];
+            point++;
+        }
+        read.close();
+    }
+    //вызов сортировки
+    SortOfVector(ReadFromFile, ReadFromFile[9]);
+
+}
+void WrittenInFile(int WrittenInFile[], int& LoadInFileScore) {
+
+    //вставляю в конец , так как  сортровка идет по убыванию.
+     WrittenInFile[9] = LoadInFileScore;
+
+    SortOfVector(WrittenInFile, WrittenInFile[9]);
+    ofstream written;
+    written.open("DataPlayer.txt", ios_base::out | ios_base::trunc);
+    if (!written.is_open()) {
+        cout << "Fail data is down";
+    }
+    else {
+        for (int i = 0; i < 10; i++) {
+            written << WrittenInFile[i] << endl;
+        }
+        written.close();
+    }
+}
+void SortOfVector(int sortArray[], int& thisScore) {
+    int temp = 0;
+    //Обнуляю 
+    //Вставляю в конц, для сортировки всего массива
+
+    for (int i = 0; i < 10; i++) {
+        for (int j = 0;j < 10 - i; j++) {
+            if (sortArray[j] <= sortArray[j + 1]) {
+                temp = sortArray[j];
+                sortArray[j] = sortArray[j + 1];
+                sortArray[j + 1] = temp;
+            }
+        }
+    }
+}
