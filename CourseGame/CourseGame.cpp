@@ -1,40 +1,4 @@
-#include <SFML/Graphics.hpp>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-
-
-using namespace std;
-using namespace sf;
-
-//класс для спрайтов
-class Object {
-public:
-    Sprite fon, game, exit, block[18], player, ball, gift, buttonTableScore, buttonBack;
-
-    bool moveGift = false;
-
-    RectangleShape line;
-
-};
-
-//Menu
-class Menu {
-public:
-    bool menu = true;
-    bool game = false;
-    bool tableSrore = false;
-    bool buttonBack = false;
-};
-
-//Разрушение блоков со второго раза
-bool DoubleHit(int HitArray[], int& c);
-//Сортировка массиваы
-void  SortOfVector(int sortArray[], int& thisScore);
-//Чтение из файла
-void ReadIngFromFile(int ReadFromFile[]);
-//Запись в файл
-void WrittenInFile(int WrittenInFile[], int& LoadInFileScore);
+#include "Functions.h"
 
 int main()
 {
@@ -48,8 +12,8 @@ int main()
     //Переменная для проверки конца игры
     int endGame = 0;
     //Массив для сверки второго удара
-    int HitArray[18];
-    for (int q = 0; q < 18; q++) {
+    int HitArray[6];
+    for (int q = 0; q < 6; q++) {
         HitArray[q] = 1;
 
     }
@@ -81,8 +45,6 @@ int main()
     tableScore.setFillColor(Color::White);
     tableScore.setStyle(Text::Bold);
     tableScore.setPosition(500, 100);
-
-
 
     //Фон
     Texture t1, t2, t3, t4, t5, t6, t7, t8, t9;
@@ -150,8 +112,6 @@ int main()
 
     while (window.isOpen()) {
         Event event;
-
-
 
         while (window.pollEvent(event)) {
             if (event.type == Event::Closed) {
@@ -354,10 +314,6 @@ int main()
         //Текст с количеством очков
         text.setString("Твой счет:" + playerScoreString.str());
 
-
-
-
-
         window.draw(obj.fon);
 
         //Если меню true , то видим меню
@@ -385,76 +341,9 @@ int main()
             window.draw(obj.gift);
         }
 
-
         window.display();
 
     }
-
-
-
     return 0;
 }
 
-
-bool DoubleHit(int HitArray[], int& c) {
-    if (HitArray[c] == 1) {
-        HitArray[c] = 0;
-        return false;
-    }
-    else {
-        return true;
-    }
-};
-void ReadIngFromFile(int ReadFromFile[]) {
-    ifstream read;
-    read.open("DataPlayer.txt");
-
-    if (!read.is_open()) {
-        cout << "Problem load a file.";
-    }
-    else {
-        int point = 0;
-        while (!read.eof()) {
-            read >> ReadFromFile[point];
-            point++;
-        }
-        read.close();
-    }
-    //вызов сортировки
-    SortOfVector(ReadFromFile, ReadFromFile[10]);
-
-}
-void WrittenInFile(int WrittenInFile[], int& LoadInFileScore) {
-
-    //вставляю в конец , так как  сортровка идет по убыванию.
-    WrittenInFile[10] = LoadInFileScore;
-
-    SortOfVector(WrittenInFile, WrittenInFile[10]);
-    ofstream written;
-    written.open("DataPlayer.txt", ios_base::out | ios_base::trunc);
-    if (!written.is_open()) {
-        cout << "Fail data is down";
-    }
-    else {
-        for (int i = 0; i < 11; i++) {
-            written << WrittenInFile[i] << endl;
-        }
-        written.close();
-    }
-}
-void SortOfVector(int sortArray[], int& thisScore) {
-    int temp = 0;
-    //Обнуляю 
-    //Вставляю в конц, для сортировки всего массива
-    sortArray[10] = thisScore;
-
-    for (int i = 0; i < 11; i++) {
-        for (int j = 0;j < 11 - i; j++) {
-            if (sortArray[j] <= sortArray[j + 1]) {
-                temp = sortArray[j];
-                sortArray[j] = sortArray[j + 1];
-                sortArray[j + 1] = temp;
-            }
-        }
-    }
-}
