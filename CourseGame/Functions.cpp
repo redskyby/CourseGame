@@ -32,7 +32,7 @@ void ReadIngFromFile(int ReadFromFile[]) {
 void WrittenInFile(int WrittenInFile[], int& LoadInFileScore) {
 
     //вставляю в конец , так как  сортровка идет по убыванию.
-    WrittenInFile[10] = LoadInFileScore;
+     WrittenInFile[10] = LoadInFileScore;
 
     SortOfVector(WrittenInFile, WrittenInFile[10]);
     ofstream written;
